@@ -1,5 +1,6 @@
 package vttp.batch5.ssf.Day15Homework.controllers;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,37 +24,52 @@ public class CartController {
 
     // Display the list of carts for the user
     @GetMapping("/carts")
-    public String viewCarts(@RequestParam("name") String name, Model model) {
-        // Get the user
-        User user = userService.getOrCreateUser(name);
+    public String viewCarts(HttpSession session, Model model) {
+        // Check if a user is logged in
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            // Redirect to login if no user is logged in
+            return "redirect:/";
+        }
 
-        // Get the list of carts for the user
+        // Retrieve the user and their carts
+        User user = userService.getOrCreateUser(loggedInUser);
         model.addAttribute("user", user);
         model.addAttribute("carts", cartService.getCartsForUser(user));
 
-        return "cart"; // Thymeleaf template for displaying carts
+        return "cart";
     }
 
     // Create a new cart
     @PostMapping("/carts/create")
-    public String createCart(@RequestParam("name") String name) {
-        // Get the user and create a new cart for them
-        User user = userService.getOrCreateUser(name);
+    public String createCart(HttpSession session) {
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/";
+        }
+        User user = userService.getOrCreateUser(loggedInUser);
         cartService.createCartForUser(user);
-
-        // Redirect back to the carts page
-        return "redirect:/carts?name=" + name;
+        return "redirect:/carts";
     }
 
     // View a specific cart by ID
     @GetMapping("/cart/{cartId}")
-    public String viewCart(@PathVariable("cartId") String cartId, Model model) {
-        Cart cart = cartService.getCartById(cartId);
-        if (cart == null) {
-            throw new IllegalArgumentException("Cart with ID " + cartId + " not found.");
+    public String viewCart(@PathVariable("cartId") String cartId, HttpSession session, Model model) {
+        // Check if a user is logged in
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            // Redirect to login if no user is logged in
+            return "redirect:/";
         }
-        // Retrieve the user from the cart's association
-        User user = userService.getUserByCartId(cartId);
+
+        // Retrieve the user and ensure they own the cart
+        User user = userService.getOrCreateUser(loggedInUser);
+        if (!user.getCartIds().contains(cartId)) {
+            throw new IllegalArgumentException("Access denied: You do not own this cart.");
+        }
+
+        // Fetch the cart and pass data to the view
+        Cart cart = cartService.getCartById(cartId);
         model.addAttribute("cart", cart);
         model.addAttribute("user", user);
         return "CartID";

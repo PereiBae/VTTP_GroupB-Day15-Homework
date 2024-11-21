@@ -10,7 +10,7 @@
 
   <!-- Back to Carts Button -->
   <div class="mb-4">
-    <a th:href="@{'/carts?name=' + ${user.name}}" class="btn btn-secondary">Back to Carts</a>
+    <a href="/carts" class="btn btn-secondary">Back to Carts</a>
   </div>
 
   <!-- Display Cart Items -->
@@ -23,8 +23,8 @@
     </thead>
     <tbody>
     <tr th:each="entry : ${cart.items}">
-      <td th:text="${entry.key}"></td>
-      <td th:text="${entry.value}"></td>
+      <td th:text="${entry.key}"></td> <!-- Item name -->
+      <td th:text="${entry.value}"></td> <!-- Quantity -->
     </tr>
     </tbody>
   </table>

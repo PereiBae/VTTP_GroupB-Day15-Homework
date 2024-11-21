@@ -1,5 +1,6 @@
 package vttp.batch5.ssf.Day15Homework.controllers;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,15 +25,22 @@ public class LoginController {
 
     // Handle login
     @PostMapping("/login")
-    public String loginUser(@RequestParam("name") String name, Model model) {
+    public String loginUser(String name, HttpSession session, Model model) {
         // Check if user exists or create a new one
         User user = userService.getOrCreateUser(name);
 
-        // Add user information to the model
-        model.addAttribute("user", user);
+        // Store the user's name in the session
+        session.setAttribute("loggedInUser", name);
 
         // Redirect to the carts page
-        return "redirect:/carts?name=" + name;
+        return "redirect:/carts";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        // Invalidate the session
+        session.invalidate();
+        return "redirect:/";
     }
 }
 

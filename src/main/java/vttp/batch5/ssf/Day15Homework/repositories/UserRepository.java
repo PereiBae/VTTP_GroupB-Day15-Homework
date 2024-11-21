@@ -17,15 +17,18 @@ public class UserRepository {
     private RedisTemplate<String, Object> redisTemplate;
 
     // Find a user by name
+    // hget User {name}
     public User findByName(String name) {
         return (User) redisTemplate.opsForHash().get(HASH_KEY, name);
     }
 
     // Save a user to Redis
+    // hset User {user.getname}
     public void save(User user) {
         redisTemplate.opsForHash().put(HASH_KEY, user.getName(), user);
     }
 
+    //keys *
     public List<User> findAll() {
         return redisTemplate.opsForHash().values(HASH_KEY)
                 .stream()
